@@ -11,7 +11,7 @@ const redis = new Redis({
 
 const ratelimit = new Ratelimit({
   redis: redis,
-  limiter: Ratelimit.slidingWindow(5, "10 s"),
+  limiter: Ratelimit.slidingWindow(5, "1 s"),
 });
 
 export default withClerkMiddleware(async (req: NextRequest) => {
@@ -31,4 +31,4 @@ export default withClerkMiddleware(async (req: NextRequest) => {
 });
 
 // Stop Middleware running on static files
-export const config = { matcher: "/((?!_next/image|_next/static|favicon.ico).*)" };
+export const config = { matcher: "/admin/:path*" };
