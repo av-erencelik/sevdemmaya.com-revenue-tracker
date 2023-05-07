@@ -8,7 +8,8 @@ export const measurementUnit = mysqlTable(
   "measurement_unit",
   {
     id: serial("id").primaryKey().notNull(),
-    name: varchar("user_id", { length: 36 }).notNull(),
+    name: varchar("name", { length: 36 }).notNull(),
+    abbreviation: varchar("abbreviation", { length: 36 }).notNull(),
     typeId: int("type_id").notNull(),
   },
   (measurementUnit) => ({
@@ -40,11 +41,11 @@ export const price = mysqlTable(
   {
     id: serial("id").primaryKey().notNull(),
     ingredientId: int("ingredient_id").notNull(),
-    createdAt: timestamp("created_at").defaultNow().notNull(),
     price: decimal("price", { precision: 10, scale: 2 }).notNull(),
+    createdAt: timestamp("created_at").defaultNow(),
   },
   (price) => ({
-    ingredientIdIndex: index("ingredient__idx").on(price.ingredientId),
+    ingredientIdIndex: index("price__ingredient__idx").on(price.ingredientId),
   })
 );
 export const ingredient = mysqlTable("ingredient", {
@@ -84,7 +85,7 @@ export const ingredientInventory = mysqlTable(
     quantity: decimal("quantity", { precision: 10, scale: 2 }).notNull(),
   },
   (ingredientInventory) => ({
-    ingredientIdIndex: index("ingredient__idx").on(ingredientInventory.ingredientId),
+    ingredientIdIndex: index("invetory__ingredient__idx").on(ingredientInventory.ingredientId),
   })
 );
 export const order = mysqlTable("order", {
@@ -124,5 +125,11 @@ export const externalCost = mysqlTable("external_cost", {
   id: serial("id").primaryKey().notNull(),
   name: varchar("name", { length: 255 }).notNull(),
   cost: decimal("cost", { precision: 10, scale: 2 }).notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+export const createdItem = mysqlTable("created_item", {
+  id: serial("id").primaryKey().notNull(),
+  recipeId: int("recipe_id").notNull(),
+  yieldCreated: int("yield_created").notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
