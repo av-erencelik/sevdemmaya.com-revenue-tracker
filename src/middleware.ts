@@ -1,4 +1,4 @@
-import { withClerkMiddleware, getAuth } from "@clerk/nextjs/server";
+import { withClerkMiddleware, getAuth, authMiddleware } from "@clerk/nextjs/server";
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { Ratelimit } from "@upstash/ratelimit";
@@ -11,24 +11,36 @@ const redis = new Redis({
 
 const ratelimit = new Ratelimit({
   redis: redis,
-  limiter: Ratelimit.slidingWindow(5, "1 s"),
+  limiter: Ratelimit.slidingWindow(3, "1 s"),
 });
 
-export default withClerkMiddleware(async (req: NextRequest) => {
-  const ip = req.ip ?? "127.0.0.1";
-  const { success } = await ratelimit.limit(ip);
-  if (!success) {
-    return NextResponse.redirect(new URL("/blocked", req.url));
-  }
-  const isAuthPage = req.nextUrl.pathname.startsWith("/login") || req.nextUrl.pathname.startsWith("/register");
-  const { userId } = getAuth(req);
-  if (isAuthPage) {
-    if (userId) {
-      return NextResponse.redirect(new URL("/", req.url));
+export default authMiddleware({
+  beforeAuth: async (req, evt) => {
+    const ip = req.ip ?? "127.0.0.1";
+    if (req.nextUrl.pathname.startsWith("/api") || req.nextUrl.pathname.startsWith("/admin")) {
+      const { success } = await ratelimit.limit(ip);
+      if (!success) {
+        return NextResponse.redirect(new URL("/blocked", req.url));
+      }
     }
-  }
-  return NextResponse.next();
+  },
+  afterAuth(auth, req, evt) {
+    const isAuthPage = req.nextUrl.pathname.startsWith("/admin/giris");
+    const { user } = auth;
+    if (!isAuthPage) {
+      if (!user) {
+        return NextResponse.redirect(new URL("/admin/giris", req.url));
+      } else {
+        return NextResponse.next();
+      }
+    } else {
+      if (user) {
+        return NextResponse.redirect(new URL("/admin", req.url));
+      }
+    }
+  },
 });
 
-// Stop Middleware running on static files
-export const config = { matcher: "/admin/:path*" };
+export const config = {
+  matcher: ["/admin/:path*", "/admin"],
+};
