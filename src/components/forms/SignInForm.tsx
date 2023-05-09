@@ -1,5 +1,4 @@
 "use client";
-
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Button } from "../ui/Button";
@@ -7,18 +6,17 @@ import { useAuth } from "@clerk/nextjs";
 import { Loader2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
-import { useSignUpClerk } from "@/lib/auth";
-import { signUpSchema } from "@/types/schemas";
-import { SignUpFormData } from "@/types/types";
+import { useSignInClerk } from "@/lib/auth";
+import { signInSchema } from "@/types/schemas";
+import { SignInFormData } from "@/types/types";
 import { InputGroup } from "./InputGroup";
-
-const SignUpForm = () => {
+import { localizeError } from "@/lib/utils";
+const LoginForm = () => {
   const router = useRouter();
 
   const { isSignedIn } = useAuth();
 
-  const { trigger, isMutating, error } = useSignUpClerk();
-
+  const { trigger, isMutating, error } = useSignInClerk();
   useEffect(() => {
     if (isSignedIn) {
       router.push("/");
@@ -29,23 +27,22 @@ const SignUpForm = () => {
     register,
     handleSubmit,
     formState: { errors },
-  } = useForm<SignUpFormData>({
-    resolver: zodResolver(signUpSchema),
+  } = useForm<SignInFormData>({
+    resolver: zodResolver(signInSchema),
   });
-  const onSubmit = (data: SignUpFormData) => trigger(data);
+  const onSubmit = (data: SignInFormData) => trigger(data);
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="flex w-80 flex-col gap-2">
       <InputGroup
+        errorMessage={errors.identifier?.message}
         type="text"
-        placeholder="Username"
-        {...register("username")}
-        errorMessage={errors.username?.message}
+        placeholder="Email"
+        {...register("identifier")}
       />
-      <InputGroup errorMessage={errors.email?.message} type="email" placeholder="Email" {...register("email")} />
       <InputGroup
         errorMessage={errors.password?.message}
         type="password"
-        placeholder="Password"
+        placeholder="Şifre"
         {...register("password")}
       />
       <Button type="submit" variant="default" disabled={isMutating}>
@@ -54,15 +51,15 @@ const SignUpForm = () => {
             <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Please Wait
           </>
         ) : (
-          "Register"
+          "Giriş Yap"
         )}
       </Button>
 
       <p className="mt-1 px-1 text-center text-xs text-destructive">
-        {error !== undefined ? (error instanceof Error ? error.message : "An error occurred") : ""}
+        {error !== undefined ? (error instanceof Error ? localizeError(error) : "Bir hata oluştu!") : ""}
       </p>
     </form>
   );
 };
 
-export default SignUpForm;
+export default LoginForm;
