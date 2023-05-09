@@ -1,6 +1,5 @@
-import { withClerkMiddleware, getAuth, authMiddleware } from "@clerk/nextjs/server";
+import { authMiddleware } from "@clerk/nextjs/server";
 import { NextResponse } from "next/server";
-import type { NextRequest } from "next/server";
 import { Ratelimit } from "@upstash/ratelimit";
 import { Redis } from "@upstash/redis";
 import { env } from "./env.mjs";
@@ -26,15 +25,15 @@ export default authMiddleware({
   },
   afterAuth(auth, req, evt) {
     const isAuthPage = req.nextUrl.pathname.startsWith("/admin/giris");
-    const { user } = auth;
+    const { userId } = auth;
     if (!isAuthPage) {
-      if (!user) {
+      if (!userId) {
         return NextResponse.redirect(new URL("/admin/giris", req.url));
       } else {
         return NextResponse.next();
       }
     } else {
-      if (user) {
+      if (userId) {
         return NextResponse.redirect(new URL("/admin", req.url));
       }
     }

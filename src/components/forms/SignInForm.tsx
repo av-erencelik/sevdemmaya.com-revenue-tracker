@@ -14,7 +14,8 @@ import { localizeError } from "@/lib/utils";
 const LoginForm = () => {
   const router = useRouter();
 
-  const { isSignedIn } = useAuth();
+  const { isSignedIn, userId } = useAuth();
+  console.log(userId);
 
   const { trigger, isMutating, error } = useSignInClerk();
   useEffect(() => {
